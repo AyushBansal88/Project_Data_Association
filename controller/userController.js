@@ -37,6 +37,7 @@ exports.signUp = async (req, res) => {
       email,
       password: hash,
     });
+    console.log(user);
     let token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     res.cookie("token", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -67,7 +68,6 @@ exports.validateLogin = async (req, res) => {
   try {
     const {email, password} = req.body;
     let user = await userModel.findOne({email});
-    console.log(user);
     if(user){
       const check = await bcrypt.compare(password, user.password);
       if(check){
