@@ -15,41 +15,41 @@ exports.home = (req, res) => {
 
 exports.signUp = async (req, res) => {
   try {
-  const { name, username, email, password } = req.body;
-  if (!name || !username || !email || !password) {
-    return res.status(400).json({
-    success: false,
-    message: "All feilds are required",
+    const { name, username, email, password } = req.body;
+    if (!name || !username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All feilds are required",
+      });
+    }
+    let checkuser = await userModel.findOne({ email });
+    if (checkuser != null) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already registered",
+      });
+    }
+    bcrypt.genSalt(10, function (err, salt) {
+      bcrypt.hash(password, salt, async function (err, hash) {
+        let user = await userModel.create({
+          name,
+          username,
+          email,
+          password: hash,
+        });
+        console.log(user);
+        let token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        res.cookie("token", token, {
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        res.redirect("/profile");
+      });
     });
-  }
-  let checkuser = await userModel.findOne({ email });
-  if (checkuser != null) {
-    return res.status(400).json({
-    success: false,
-    message: "Email already registered",
-    });
-  }
-  bcrypt.genSalt(10, function (err, salt) {
-    bcrypt.hash(password, salt, async function (err, hash) {
-    let user = await userModel.create({
-      name,
-      username,
-      email,
-      password: hash,
-    });
-    console.log(user);
-    let token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.cookie("token", token, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    res.redirect("/profile");
-    });
-  });
   } catch (error) {
-  res.status(500).json({
-    success: false,
-    message: error.message,
-  });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
